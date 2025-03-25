@@ -90,7 +90,7 @@ inline BT::NodeStatus RemovePassedGoals::tick()
     }
     waypoint_statuses[cur_waypoint_index].waypoint_status =
       nav2_msgs::msg::WaypointStatus::COMPLETED;
-
+    
     goal_poses.goals.erase(goal_poses.goals.begin());
   }
 

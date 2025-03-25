@@ -107,6 +107,9 @@ NavigateThroughPosesNavigator::goalCompleted(
       result->error_code,
       result->error_msg.c_str());
   }
+  auto blackboard = bt_action_server_->getBlackboard();
+  result->waypoint_statuses =
+    blackboard->get<std::vector<nav2_msgs::msg::WaypointStatus>>(waypoint_statuses_blackboard_id_);
 }
 
 void
