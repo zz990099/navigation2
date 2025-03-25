@@ -273,9 +273,14 @@ NavigateThroughPosesNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr
       std::move(goals_array));
 
   // Reset the waypoint states vector in the blackboard
-  auto waypoint_statuses = std::vector<nav2_msgs::msg::WaypointStatus>(goals_array.goals.size());
+  std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses(goals_array.goals.size());
+  for (size_t waypoint_index = 0 ; waypoint_index < goals_array.goals.size() ; ++waypoint_index) {
+    waypoint_statuses[waypoint_index].index = waypoint_index;
+    waypoint_statuses[waypoint_index].goal = goals_array.goals[waypoint_index];
+  }
   blackboard->set<decltype(waypoint_statuses)>(waypoint_statuses_blackboard_id_,
       std::move(waypoint_statuses));
+  blackboard->set<std::string>("waypoint_statuses_id", waypoint_statuses_blackboard_id_);
 
   return true;
 }

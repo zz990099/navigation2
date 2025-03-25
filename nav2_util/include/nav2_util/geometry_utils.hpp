@@ -24,6 +24,7 @@
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "nav2_msgs/msg/waypoint_status.hpp"
 
 namespace nav2_util
 {
@@ -177,6 +178,23 @@ inline double calculate_path_length(const nav_msgs::msg::Path & path, size_t sta
     path_length += euclidean_distance(path.poses[idx].pose, path.poses[idx + 1].pose);
   }
   return path_length;
+}
+
+inline int find_goal_in_waypoint_statuses(
+  const std::vector<nav2_msgs::msg::WaypointStatus>& waypoint_statuses,
+  const geometry_msgs::msg::PoseStamped& goal)
+{
+  auto itr = std::find_if(waypoint_statuses.begin(), waypoint_statuses.end(),
+    [&goal](const nav2_msgs::msg::WaypointStatus& status){
+      return status.goal == goal
+        && status.waypoint_status == nav2_msgs::msg::WaypointStatus::PENDING;
+    });
+  
+  if (itr == waypoint_statuses.end()) {
+    return -1;
+  }
+
+  return itr - waypoint_statuses.begin();
 }
 
 }  // namespace geometry_utils

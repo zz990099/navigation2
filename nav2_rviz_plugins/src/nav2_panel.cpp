@@ -1458,6 +1458,28 @@ Nav2Panel::getNavToPoseFeedbackLabel(nav2_msgs::action::NavigateToPose::Feedback
   return QString(std::string("<table>" + toLabel(msg) + "</table>").c_str());
 }
 
+template<>
+inline std::string Nav2Panel::toLabel(nav2_msgs::action::NavigateThroughPoses::Feedback & msg)
+{
+  std::string waypoint_status_in_str;
+  for (const auto & state : msg.waypoint_statuses) {
+    waypoint_status_in_str += std::to_string(state.waypoint_status) + " ";
+  }
+
+  return std::string(
+    "<tr><td width=150>ETA:</td><td>" +
+    toString(rclcpp::Duration(msg.estimated_time_remaining).seconds(), 0) + " s"
+    "</td></tr><tr><td width=150>Distance remaining:</td><td>" +
+    toString(msg.distance_remaining, 2) + " m"
+    "</td></tr><tr><td width=150>Time taken:</td><td>" +
+    toString(rclcpp::Duration(msg.navigation_time).seconds(), 0) + " s"
+    "</td></tr><tr><td width=150>Recoveries:</td><td>" +
+    std::to_string(msg.number_of_recoveries) +
+    "</td></tr><tr><td width=150>Waypoint states:</td><td>" +
+    waypoint_status_in_str +
+    "</td></tr>");
+}
+
 inline QString
 Nav2Panel::getNavThroughPosesFeedbackLabel(nav2_msgs::action::NavigateThroughPoses::Feedback msg)
 {

@@ -50,10 +50,8 @@ public:
           "Goals with passed viapoints removed"),
       BT::InputPort<double>("radius", 0.5, "radius to goal for it to be considered for removal"),
       BT::InputPort<std::string>("robot_base_frame", "Robot base frame"),
-      BT::InputPort<std::vector<nav2_msgs::msg::WaypointStatus>>("input_waypoint_statuses",
-          "Original waypoint statuses vector to be modified"),
-      BT::OutputPort<std::vector<nav2_msgs::msg::WaypointStatus>>("output_waypoint_statuses",
-          "waypoint statuses vector with states modified"),
+      BT::InputPort<std::string>("waypoint_statuses_id",
+          "The id of input waypoint_statuses maintained in blackboard")
     };
   }
 

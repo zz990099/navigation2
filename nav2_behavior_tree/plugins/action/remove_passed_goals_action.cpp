@@ -67,20 +67,11 @@ inline BT::NodeStatus RemovePassedGoals::tick()
     return BT::NodeStatus::FAILURE;
   }
 
-  // get the `waypoint_statuses` vector if provided
+  // get the `waypoint_statuses` vector
+  std::string waypoint_statuses_id;
+  getInput("waypoint_statuses_id", waypoint_statuses_id);
   std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses;
-  auto get_waypoint_statuses_res = getInput("input_waypoint_statuses", waypoint_statuses);
-  size_t cur_waypoint_index = 0;
-  if (get_waypoint_statuses_res) {
-    while (cur_waypoint_index < waypoint_statuses.size()) {
-      if (waypoint_statuses[cur_waypoint_index].waypoint_status ==
-        nav2_msgs::msg::WaypointStatus::PENDING)
-      {
-        break;
-      }
-      ++cur_waypoint_index;
-    }
-  }
+  waypoint_statuses = config().blackboard->get<decltype(waypoint_statuses)>(waypoint_statuses_id);
 
   double dist_to_goal;
   while (goal_poses.goals.size() > 1) {
@@ -90,19 +81,22 @@ inline BT::NodeStatus RemovePassedGoals::tick()
       break;
     }
 
-    goal_poses.goals.erase(goal_poses.goals.begin());
-    // mark waypoint statuses if the vector is provided
-    if (get_waypoint_statuses_res) {
-      waypoint_statuses[cur_waypoint_index].waypoint_status =
-        nav2_msgs::msg::WaypointStatus::COMPLETED;
-      ++cur_waypoint_index;
+    // mark waypoint statuses before the goal is erased from goals
+    auto cur_waypoint_index =
+      find_goal_in_waypoint_statuses(waypoint_statuses, goal_poses.goals[0]);
+    if (cur_waypoint_index == -1) {
+      throw std::runtime_error(
+        "RemovePassedGoals: Failed to find matching goal in waypoint_statuses");
     }
+    waypoint_statuses[cur_waypoint_index].waypoint_status =
+      nav2_msgs::msg::WaypointStatus::COMPLETED;
+
+    goal_poses.goals.erase(goal_poses.goals.begin());
   }
 
   setOutput("output_goals", goal_poses);
-  if (get_waypoint_statuses_res) {
-    setOutput("output_waypoint_statuses", waypoint_statuses);
-  }
+  // set `waypoint_statuses` output
+  config().blackboard->set<decltype(waypoint_statuses)>(waypoint_statuses_id, waypoint_statuses);
 
   return BT::NodeStatus::SUCCESS;
 }

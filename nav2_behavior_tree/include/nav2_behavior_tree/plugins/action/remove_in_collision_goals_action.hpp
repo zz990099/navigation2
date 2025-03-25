@@ -64,10 +64,8 @@ public:
           "Whether to consider unknown cost as obstacle"),
         BT::OutputPort<nav_msgs::msg::Goals>("output_goals",
           "Goals with in-collision goals removed"),
-        BT::InputPort<std::vector<nav2_msgs::msg::WaypointStatus>>("input_waypoint_statuses",
-          "Original waypoint statuses vector to be modified"),
-        BT::OutputPort<std::vector<nav2_msgs::msg::WaypointStatus>>("output_waypoint_statuses",
-          "waypoint statuses vector with states modified"),
+        BT::InputPort<std::string>("waypoint_statuses_id",
+          "The id of input waypoint_statuses maintained in blackboard")
       });
   }
 
