@@ -23,6 +23,7 @@
 #include "nav_msgs/msg/goals.hpp"
 #include "nav2_behavior_tree/bt_service_node.hpp"
 #include "nav2_msgs/srv/get_costs.hpp"
+#include "nav2_msgs/msg/waypoint_status.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -63,6 +64,8 @@ public:
           "Whether to consider unknown cost as obstacle"),
         BT::OutputPort<nav_msgs::msg::Goals>("output_goals",
           "Goals with in-collision goals removed"),
+        BT::InputPort<std::string>("waypoint_statuses_id",
+          "The id of input waypoint_statuses maintained in blackboard")
       });
   }
 

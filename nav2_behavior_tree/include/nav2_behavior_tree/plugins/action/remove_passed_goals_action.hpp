@@ -24,6 +24,7 @@
 #include "nav2_util/robot_utils.hpp"
 #include "behaviortree_cpp/action_node.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
+#include "nav2_msgs/msg/waypoint_status.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -49,6 +50,8 @@ public:
           "Goals with passed viapoints removed"),
       BT::InputPort<double>("radius", 0.5, "radius to goal for it to be considered for removal"),
       BT::InputPort<std::string>("robot_base_frame", "Robot base frame"),
+      BT::InputPort<std::string>("waypoint_statuses_id",
+          "The id of input waypoint_statuses maintained in blackboard")
     };
   }
 
