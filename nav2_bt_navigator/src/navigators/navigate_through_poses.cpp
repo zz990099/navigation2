@@ -42,6 +42,13 @@ NavigateThroughPosesNavigator::configure(
 
   path_blackboard_id_ = node->get_parameter("path_blackboard_id").as_string();
 
+  if (!node->has_parameter("waypoint_statuses_blackboard_id")) {
+    node->declare_parameter("waypoint_statuses_blackboard_id", std::string("waypoint_statuses"));
+  }
+
+  waypoint_statuses_blackboard_id_ =
+    node->get_parameter("waypoint_statuses_blackboard_id").as_string();
+
   // Odometry smoother object for getting current speed
   odom_smoother_ = odom_smoother;
 
@@ -100,6 +107,9 @@ NavigateThroughPosesNavigator::goalCompleted(
       result->error_code,
       result->error_msg.c_str());
   }
+  auto blackboard = bt_action_server_->getBlackboard();
+  result->waypoint_statuses =
+    blackboard->get<std::vector<nav2_msgs::msg::WaypointStatus>>(waypoint_statuses_blackboard_id_);
 }
 
 void
@@ -115,6 +125,9 @@ NavigateThroughPosesNavigator::onLoop()
 
   nav_msgs::msg::Goals goal_poses;
   [[maybe_unused]] auto res = blackboard->get(goals_blackboard_id_, goal_poses);
+
+  feedback_msg->waypoint_statuses =
+    blackboard->get<std::vector<nav2_msgs::msg::WaypointStatus>>(waypoint_statuses_blackboard_id_);
 
   if (goal_poses.goals.size() == 0) {
     bt_action_server_->publishFeedback(feedback_msg);
@@ -261,6 +274,16 @@ NavigateThroughPosesNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr
   // Update the goal pose on the blackboard
   blackboard->set<nav_msgs::msg::Goals>(goals_blackboard_id_,
       std::move(goals_array));
+
+  // Reset the waypoint states vector in the blackboard
+  std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses(goals_array.goals.size());
+  for (size_t waypoint_index = 0 ; waypoint_index < goals_array.goals.size() ; ++waypoint_index) {
+    waypoint_statuses[waypoint_index].index = waypoint_index;
+    waypoint_statuses[waypoint_index].goal = goals_array.goals[waypoint_index];
+  }
+  blackboard->set<decltype(waypoint_statuses)>(waypoint_statuses_blackboard_id_,
+      std::move(waypoint_statuses));
+  blackboard->set<std::string>("waypoint_statuses_id", waypoint_statuses_blackboard_id_);
 
   return true;
 }
