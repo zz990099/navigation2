@@ -305,7 +305,7 @@ void WaypointFollower::followWaypointsHandler(
       current_goal_status_.status == ActionStatus::FAILED ||
       current_goal_status_.status == ActionStatus::UNKNOWN)
     {
-      nav2_msgs::msg::MissedWaypoint missedWaypoint;
+      nav2_msgs::msg::WaypointStatus missedWaypoint;
       missedWaypoint.index = goal_index;
       missedWaypoint.goal = poses[goal_index];
       missedWaypoint.error_code = current_goal_status_.error_code;
@@ -340,7 +340,7 @@ void WaypointFollower::followWaypointsHandler(
         is_task_executed ? "succeeded" : "failed!");
 
       if (!is_task_executed) {
-        nav2_msgs::msg::MissedWaypoint missedWaypoint;
+        nav2_msgs::msg::WaypointStatus missedWaypoint;
         missedWaypoint.index = goal_index;
         missedWaypoint.goal = poses[goal_index];
         missedWaypoint.error_code =
