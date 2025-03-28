@@ -93,7 +93,7 @@ NavigateThroughPosesNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 void
 NavigateThroughPosesNavigator::goalCompleted(
   typename ActionT::Result::SharedPtr result,
-  const nav2_behavior_tree::BtStatus /*final_bt_status*/)
+  const nav2_behavior_tree::BtStatus final_bt_status)
 {
   if (result->error_code == 0) {
     if (bt_action_server_->populateInternalError(result)) {
@@ -107,9 +107,22 @@ NavigateThroughPosesNavigator::goalCompleted(
       result->error_code,
       result->error_msg.c_str());
   }
+
+  // populate waypoint statuses in result
   auto blackboard = bt_action_server_->getBlackboard();
-  result->waypoint_statuses =
+  auto waypoint_statuses =
     blackboard->get<std::vector<nav2_msgs::msg::WaypointStatus>>(waypoint_statuses_blackboard_id_);
+
+  // populate remaining waypoint statuses based on final_bt_status
+  auto integrate_waypoint_status = final_bt_status == nav2_behavior_tree::BtStatus::SUCCEEDED ?
+    nav2_msgs::msg::WaypointStatus::COMPLETED : nav2_msgs::msg::WaypointStatus::MISSED;
+  for (auto & waypoint_status : waypoint_statuses) {
+    if (waypoint_status.waypoint_status == nav2_msgs::msg::WaypointStatus::PENDING) {
+      waypoint_status.waypoint_status = integrate_waypoint_status;
+    }
+  }
+
+  result->waypoint_statuses = std::move(waypoint_statuses);
 }
 
 void
@@ -278,12 +291,11 @@ NavigateThroughPosesNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr
   // Reset the waypoint states vector in the blackboard
   std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses(goals_array.goals.size());
   for (size_t waypoint_index = 0 ; waypoint_index < goals_array.goals.size() ; ++waypoint_index) {
-    waypoint_statuses[waypoint_index].index = waypoint_index;
-    waypoint_statuses[waypoint_index].goal = goals_array.goals[waypoint_index];
+    waypoint_statuses[waypoint_index].waypoint_index = waypoint_index;
+    waypoint_statuses[waypoint_index].waypoint_pose = goals_array.goals[waypoint_index];
   }
   blackboard->set<decltype(waypoint_statuses)>(waypoint_statuses_blackboard_id_,
       std::move(waypoint_statuses));
-  blackboard->set<std::string>("waypoint_statuses_id", waypoint_statuses_blackboard_id_);
 
   return true;
 }

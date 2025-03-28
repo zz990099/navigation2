@@ -65,12 +65,10 @@ BT::NodeStatus RemoveInCollisionGoals::on_completion(
   }
 
   // get the `waypoint_statuses` vector
-  std::string waypoint_statuses_id;
-  auto waypoint_statuses_id_get_res = getInput("waypoint_statuses_id", waypoint_statuses_id);
   std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses;
-  if (waypoint_statuses_id_get_res) {
-    waypoint_statuses =
-      config().blackboard->get<decltype(waypoint_statuses)>(waypoint_statuses_id);
+  auto waypoint_statuses_get_res = getInput("input_waypoint_statuses", waypoint_statuses);
+  if (!waypoint_statuses_get_res) {
+    RCLCPP_WARN(node_->get_logger(), "Missing [input_waypoint_statuses] port input!");
   }
 
   nav_msgs::msg::Goals valid_goal_poses;
@@ -79,16 +77,16 @@ BT::NodeStatus RemoveInCollisionGoals::on_completion(
       response->costs[i] < cost_threshold_)
     {
       valid_goal_poses.goals.push_back(input_goals_.goals[i]);
-    } else if (waypoint_statuses_id_get_res) {
+    } else if (waypoint_statuses_get_res) {
       using namespace nav2_util::geometry_utils;  // NOLINT
       auto cur_waypoint_index =
-        find_goal_in_waypoint_statuses(waypoint_statuses, input_goals_.goals[i]);
+        find_next_matching_goal_in_waypoint_statuses(waypoint_statuses, input_goals_.goals[i]);
       if (cur_waypoint_index == -1) {
-        throw std::runtime_error(
-          "RemoveInCollisionGoals: Failed to find matching goal in waypoint_statuses");
+        RCLCPP_ERROR(node_->get_logger(), "Failed to find matching goal in waypoint_statuses");
+        return BT::NodeStatus::FAILURE;
       }
       waypoint_statuses[cur_waypoint_index].waypoint_status =
-        nav2_msgs::msg::WaypointStatus::SKIPPED;
+        nav2_msgs::msg::WaypointStatus::MISSED;
     }
   }
   // Inform if all goals have been removed
@@ -99,8 +97,8 @@ BT::NodeStatus RemoveInCollisionGoals::on_completion(
   }
   setOutput("output_goals", valid_goal_poses);
   // set `waypoint_statuses` output
-  if (waypoint_statuses_id_get_res) {
-    config().blackboard->set<decltype(waypoint_statuses)>(waypoint_statuses_id, waypoint_statuses);
+  if (waypoint_statuses_get_res) {
+    setOutput("output_waypoint_statuses", waypoint_statuses);
   }
 
   return BT::NodeStatus::SUCCESS;

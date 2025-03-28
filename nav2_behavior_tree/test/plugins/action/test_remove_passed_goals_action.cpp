@@ -159,7 +159,9 @@ TEST_F(RemovePassedGoalsTestFixture,
     R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
-          <RemovePassedGoals radius="0.5" input_goals="{goals}" output_goals="{goals}" waypoint_statuses_id="waypoint_statuses"/>
+          <RemovePassedGoals radius="0.5" input_goals="{goals}" output_goals="{goals}"
+                             input_waypoint_statuses="{waypoint_statuses}" 
+                             output_waypoint_statuses="{waypoint_statuses}"/>
         </BehaviorTree>
       </root>)";
 
@@ -185,8 +187,8 @@ TEST_F(RemovePassedGoalsTestFixture,
   // create waypoint_statuses and set it on blackboard
   std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses(poses.goals.size());
   for (size_t i = 0 ; i < waypoint_statuses.size() ; ++i) {
-    waypoint_statuses[i].goal = poses.goals[i];
-    waypoint_statuses[i].index = i;
+    waypoint_statuses[i].waypoint_pose = poses.goals[i];
+    waypoint_statuses[i].waypoint_index = i;
   }
   config_->blackboard->set("waypoint_statuses", waypoint_statuses);
 

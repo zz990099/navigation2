@@ -189,7 +189,11 @@ TEST_F(RemoveInCollisionGoalsTestFixture,
     R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
-          <RemoveInCollisionGoals service_name="/global_costmap/get_cost_global_costmap" input_goals="{goals}" output_goals="{goals}" cost_threshold="253" waypoint_statuses_id="waypoint_statuses"/>
+          <RemoveInCollisionGoals service_name="/global_costmap/get_cost_global_costmap"
+                                  input_goals="{goals}" output_goals="{goals}"
+                                  cost_threshold="253"
+                                  input_waypoint_statuses="{waypoint_statuses}"
+                                  output_waypoint_statuses="{waypoint_statuses}"/>
         </BehaviorTree>
       </root>)";
 
@@ -215,8 +219,8 @@ TEST_F(RemoveInCollisionGoalsTestFixture,
   // create waypoint_statuses and set it on blackboard
   std::vector<nav2_msgs::msg::WaypointStatus> waypoint_statuses(poses.goals.size());
   for (size_t i = 0 ; i < waypoint_statuses.size() ; ++i) {
-    waypoint_statuses[i].goal = poses.goals[i];
-    waypoint_statuses[i].index = i;
+    waypoint_statuses[i].waypoint_pose = poses.goals[i];
+    waypoint_statuses[i].waypoint_index = i;
   }
   config_->blackboard->set("waypoint_statuses", waypoint_statuses);
 
@@ -243,7 +247,7 @@ TEST_F(RemoveInCollisionGoalsTestFixture,
   EXPECT_EQ(output_waypoint_statuses[0].waypoint_status, nav2_msgs::msg::WaypointStatus::PENDING);
   EXPECT_EQ(output_waypoint_statuses[1].waypoint_status, nav2_msgs::msg::WaypointStatus::PENDING);
   EXPECT_EQ(output_waypoint_statuses[2].waypoint_status, nav2_msgs::msg::WaypointStatus::PENDING);
-  EXPECT_EQ(output_waypoint_statuses[3].waypoint_status, nav2_msgs::msg::WaypointStatus::SKIPPED);
+  EXPECT_EQ(output_waypoint_statuses[3].waypoint_status, nav2_msgs::msg::WaypointStatus::MISSED);
 }
 
 TEST_F(RemoveInCollisionGoalsTestFixture, test_tick_remove_in_collision_goals_fail)
